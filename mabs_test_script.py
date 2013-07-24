@@ -38,7 +38,7 @@ parameters["compute_distance_map"]=[]
 # Find the non fixed parameters
 non_fixed_parms=[]
 for parameter in parameters:
-    if type(parameters[parameter]) is list or type(parameters[parameter]) is list:
+    if type(parameters[parameter]) is tuple or type(parameters[parameter]) is list:
         non_fixed_parms.append(parameter)
 
 # Compute all possible combinations
