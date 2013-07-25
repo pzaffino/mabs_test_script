@@ -3,6 +3,7 @@
 """
 This is a Python script to run automatic tests on Plastimatch mabs (www.plastimatch.org)
 Author: Paolo Zaffino (p dot zaffino at unicz dot it)
+Tested on Python 2.7 and on Python 3.3
 """
 
 import os
@@ -24,6 +25,11 @@ parameters["labeling"]=labeling
 parameters["structures"]=structures
 
 ################################################################ SECTION EDITABLE BY USER - BEGIN - ####################################################
+
+# HOW SET THE PARAMETERS:
+# - Do not remove an unused dictionary entry, set it as a empty list
+# - If you want to set just a value for a parameter set it as a list having just an element
+# - If you want to set more than one value for a parameter set them inside a list
 
 ####################################
 ### Parameters setting - BEGIN - ###
@@ -72,9 +78,12 @@ parameters["structures"]["structures"]=["left_parotid", "left_parotid_corr"]
 ###   Paths setting  - BEGIN -   ###
 ####################################
 
-# SET FULL PATHS
-plastimatch_path="" # if empty will be used the default installed plastimatch
-config_files_folder="config_files"
+# HOW SET THE PATHS:
+# - Use full paths
+# - If "plastimatch_path" is unsetted (empty string) will be used the default path for plastimatch executable (that installed into the system path)
+
+plastimatch_path="/home/p4ol0/work/plastimatch_MOD_MABS/compiled_MABS"
+config_files_folder="/home/p4ol0/work/mabs/test/config_files"
 
 ####################################
 ###    Paths setting  - END -    ###
@@ -88,8 +97,8 @@ print("START! \n")
 sections = ("prealignment", "atlas-selection", "training", "registration", "labeling", "structures")
 
 # Adjust paths
-plastimatch_path.rstrip("\\/")
-config_files_folder.rstrip("\\/")
+plastimatch_path = plastimatch_path.rstrip("\\/")
+config_files_folder = config_files_folder.rstrip("\\/")
 
 # Find the non fixed parameters
 non_fixed_parms=[]
@@ -125,17 +134,26 @@ for i, combination in enumerate(combinations):
     fid = open(config_files_folder + os.sep + "mabs_test_" + str(i+1) + ".cfg", "w")
 
     for section in sections[:-1]: # No section "structures"
-        fid.write("[" + section.upper()  + "] \n")
         non_fixed_stage_parms = [p[1] for p in non_fixed_parms if p[0] == section]
         
+        section_empty=True
+
         for parameter in parameters[section]:
-            if parameters[section][parameter] and not parameter in non_fixed_stage_parms:
-                assert len(parameters[section][parameter]) == 1
-                fid.write(parameter + " = " + str(parameters[section][parameter][0]) +"\n")
-            elif parameters[section][parameter] and parameter in non_fixed_stage_parms:
-                 index = non_fixed_stage_parms.index(parameter)
-                 fid.write(parameter + " = " + str(combination[index]) +"\n")
-        fid.write("\n")
+            if parameters[section][parameter]:
+                section_empty=False
+                break
+
+        if not section_empty:
+            fid.write("[" + section.upper()  + "] \n")
+        
+            for parameter in parameters[section]:
+                if parameters[section][parameter] and not parameter in non_fixed_stage_parms:
+                    assert len(parameters[section][parameter]) == 1
+                    fid.write(parameter + " = " + str(parameters[section][parameter][0]) +"\n")
+                elif parameters[section][parameter] and parameter in non_fixed_stage_parms:
+                     index = non_fixed_stage_parms.index(parameter)
+                     fid.write(parameter + " = " + str(combination[index]) +"\n")
+            fid.write("\n")
     
     fid.write("[STRUCTURES] \n")
     for structure in parameters["structures"]["structures"]:
@@ -152,8 +170,11 @@ elif plastimatch_path != "":
 for cfg_file in os.listdir(config_files_folder):
     if cfg_file.endswith(".cfg"):
         print("Running plastimatch mabs using the file " + cfg_file  + "\n")
-        subprocess.call(plastimatch_executable + " mabs --train-registration " + config_files_folder + os.sep + cfg_file)
-        subprocess.call(plastimatch_executable + " mabs --train " + config_files_folder + os.sep + cfg_file)
+        command = plastimatch_executable + " mabs --train-registration "
+        conf_file = config_files_folder + os.sep + cfg_file
+        c = command + conf_file
+        subprocess.call(plastimatch_executable + " mabs --train-registration " + config_files_folder + os.sep + cfg_file, shell=True)
+        subprocess.call(plastimatch_executable + " mabs --train " + config_files_folder + os.sep + cfg_file, shell=True)
     elif not cfg_file.endswith(".cfg"):
         print(config_files_folder + os.sep + cfg_file + " ignored \n")
 
