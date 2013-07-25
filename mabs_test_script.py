@@ -73,8 +73,8 @@ parameters["structures"]["structures"]=["left_parotid", "left_parotid_corr"]
 ####################################
 
 # SET FULL PATHS
-plastimatch_path="/home/p4ol0/work/plastimatch_MOD_MABS/compiled_MABS" # if empty will be used the default installed plastimatch
-config_files_folder="/home/p4ol0/work/mabs/test/config_files"
+plastimatch_path="" # if empty will be used the default installed plastimatch
+config_files_folder="config_files"
 
 ####################################
 ###    Paths setting  - END -    ###
