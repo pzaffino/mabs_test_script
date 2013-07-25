@@ -9,7 +9,19 @@ import os
 import shutil
 import subprocess
 
+prealignment={}
+atlas_selection={}
+training={}
+registration={}
+labeling={}
+structures={}
 parameters={}
+parameters["prealignment"]=prealignment
+parameters["atlas-selection"]=atlas_selection
+parameters["training"]=training
+parameters["registration"]=registration
+parameters["labeling"]=labeling
+parameters["structures"]=structures
 
 ################################################################ SECTION EDITABLE BY USER - BEGIN - ####################################################
 
@@ -18,40 +30,40 @@ parameters={}
 ####################################
 
 # [PREALIGNMENT]
-parameters["reference"]=[]
-parameters["registration_config"]=[]
-parameters["spacing"]=[]
+parameters["prealignment"]["reference"]=[]
+parameters["prealignment"]["registration_config"]=[]
+parameters["prealignment"]["spacing"]=[]
 
 # [ATLASES-SELECTION]
-parameters["enable_atlas_selection"]=["true"]
-parameters["atlas_selection_criteria"]=["random"]
-parameters["roi_mask"]=[]
-parameters["mi_percent_thershold"]=[]
-parameters["mi_histogram_bins"]=[]
-parameters["lower_mi_value"]=[]
-parameters["upper_mi_value"]=[]
+parameters["atlas-selection"]["enable_atlas_selection"]=["true"]
+parameters["atlas-selection"]["atlas_selection_criteria"]=["random"]
+parameters["atlas-selection"]["roi_mask"]=[]
+parameters["atlas-selection"]["mi_percent_thershold"]=[]
+parameters["atlas-selection"]["mi_histogram_bins"]=[]
+parameters["atlas-selection"]["lower_mi_value"]=[]
+parameters["atlas-selection"]["upper_mi_value"]=[]
 
 # [TRAINING]
-parameters["atlas_dir"]=["atlas-mgh"]
-parameters["training_dir"]=["training-mgh"]
-parameters["rho_values"]=[0.5, 0.6]
-parameters["sigma_values"]=[1.5, 2.0]
-parameters["minimum_similarity"]=[0.25]
-parameters["threshold_values"]=[0.2,0.3,0.4,0.5]
-parameters["write_thresholded_files"]=[1]
-parameters["write_weight_files"]=[1]
-parameters["write_distance_map"]=[]
-parameters["compute_distance_map"]=[]
+parameters["training"]["atlas_dir"]=["atlas-mgh"]
+parameters["training"]["training_dir"]=["training-mgh"]
+parameters["training"]["rho_values"]=[0.5, 0.6]
+parameters["training"]["sigma_values"]=[1.5, 2.0]
+parameters["training"]["minimum_similarity"]=[0.25]
+parameters["training"]["threshold_values"]=[0.2,0.3,0.4,0.5]
+parameters["training"]["write_thresholded_files"]=[1]
+parameters["training"]["write_weight_files"]=[1]
+parameters["training"]["write_distance_map"]=[]
+parameters["training"]["compute_distance_map"]=[]
 
 # [REGISTRATION]
-parameters["registration_config"]=["mgh-parms.txt"]
+parameters["registration"]["registration_config"]=["mgh-parms_before_MI.txt"]
 
 # [LABELING]
-parameters["input"]=[]
-parameters["output"]=[]
+parameters["labeling"]["input"]=[]
+parameters["labeling"]["output"]=[]
 
 # [STRUCTURES]
-parameters["structures"]=["left_parotid", "left_parotid_corr"]
+parameters["structures"]["structures"]=["left_parotid", "left_parotid_corr"]
 ####################################
 ###  Parameters setting - END -  ###
 ####################################
@@ -61,8 +73,8 @@ parameters["structures"]=["left_parotid", "left_parotid_corr"]
 ####################################
 
 # SET FULL PATHS
-plastimatch_path="" # if empty will be used the default installed plastimatch
-config_files_folder="/home/USER/mabs/config_files"
+plastimatch_path="/home/p4ol0/work/plastimatch_MOD_MABS/compiled_MABS" # if empty will be used the default installed plastimatch
+config_files_folder="/home/p4ol0/work/mabs/test/config_files"
 
 ####################################
 ###    Paths setting  - END -    ###
@@ -75,23 +87,16 @@ print("START! \n")
 # Assign parameters to them section
 sections = ("prealignment", "atlas-selection", "training", "registration", "labeling", "structures")
 
-prealignment_parms = ("reference", "registration_config", "spacing")
-atlas_selection_parms = ("enable_atlas_selection", "atlas_selection_criteria", "roi_mask",
-                           "mi_percent_thershold", "mi_histogram_bins", "lower_mi_value", "upper_mi_value")
-training_parms = ("atlas_dir", "training_dir", "rho_values", "sigma_values", "minimum_similarity", "threshold_values",
-                  "write_thresholded_files", "write_weight_files", "write_distance_map", "compute_distance_map")
-registration_parms = ("registration_config")
-labeling_parms = ("input", "output")
-
 # Adjust paths
 plastimatch_path.rstrip("\\/")
 config_files_folder.rstrip("\\/")
 
 # Find the non fixed parameters
 non_fixed_parms=[]
-for parameter in parameters:
-    if len(parameters[parameter]) > 1:
-        non_fixed_parms.append(parameter)
+for section in parameters:
+    for parameter in parameters[section]:
+        if len(parameters[section][parameter]) > 1:
+            non_fixed_parms.append([section, parameter, parameters[section][parameter]])
 
 # Compute all possible combinations
 combinations=[[]]
@@ -99,7 +104,7 @@ combinations=[[]]
 print("Computing all the possible parameters combinations \n")
 
 for parm in non_fixed_parms:
-    parm=parameters[parm]
+    parm=parm[2]
     temp = []
     for x in parm:
         for i in combinations:
@@ -121,19 +126,19 @@ for i, combination in enumerate(combinations):
 
     for section in sections[:-1]: # No section "structures"
         fid.write("[" + section.upper()  + "] \n")
+        non_fixed_stage_parms = [p[1] for p in non_fixed_parms if p[0] == section]
         
-        for parameter in parameters:
-            if parameter in vars()[section.replace("-", "_") + "_parms"]:
-                if parameters[parameter] and not parameter in non_fixed_parms:
-                    assert len(parameters[parameter]) == 1
-                    fid.write(parameter + " = " + str(parameters[parameter][0]) +"\n")
-                elif parameters[parameter] and parameter in non_fixed_parms:
-                    index = non_fixed_parms.index(parameter)
-                    fid.write(parameter + " = " + str(combination[index]) +"\n")
+        for parameter in parameters[section]:
+            if parameters[section][parameter] and not parameter in non_fixed_stage_parms:
+                assert len(parameters[section][parameter]) == 1
+                fid.write(parameter + " = " + str(parameters[section][parameter][0]) +"\n")
+            elif parameters[section][parameter] and parameter in non_fixed_stage_parms:
+                 index = non_fixed_stage_parms.index(parameter)
+                 fid.write(parameter + " = " + str(combination[index]) +"\n")
         fid.write("\n")
     
     fid.write("[STRUCTURES] \n")
-    for structure in parameters["structures"]:
+    for structure in parameters["structures"]["structures"]:
         fid.write(structure + "\n")
     
     fid.close()
