@@ -62,7 +62,7 @@ parameters["training"]["write_distance_map"]=[]
 parameters["training"]["compute_distance_map"]=[]
 
 # [REGISTRATION]
-parameters["registration"]["registration_config"]=["mgh-parms_before_MI.txt"]
+parameters["registration"]["registration_config"]=["mgh-parms.txt"]
 
 # [LABELING]
 parameters["labeling"]["input"]=[]
@@ -82,8 +82,8 @@ parameters["structures"]["structures"]=["left_parotid", "left_parotid_corr"]
 # - Use full paths
 # - If "plastimatch_path" is unsetted (empty string) will be used the default path for plastimatch executable (that installed into the system path)
 
-plastimatch_path="/home/p4ol0/work/plastimatch_MOD_MABS/compiled_MABS"
-config_files_folder="/home/p4ol0/work/mabs/test/config_files"
+plastimatch_path=""
+config_files_folder="/home/USER/mabs/config_files"
 
 ####################################
 ###    Paths setting  - END -    ###
