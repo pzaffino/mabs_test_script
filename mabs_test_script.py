@@ -78,9 +78,9 @@ for i, combination in enumerate(combinations):
     fid = open(config_files_folder + os.sep + "mabs_test_" + str(i) + ".cfg", "w")
 
     for parameter in parameters:
-        if not parameter in non_fixed_parms:
+        if parameters[parameter] and not parameter in non_fixed_parms:
             fid.write(parameter + " = " + str(parameters[parameter]) +"\n")
-        elif parameter in non_fixed_parms:
+        elif parameters[parameter] and parameter in non_fixed_parms:
             index = non_fixed_parms.index(parameter)
             fid.write(parameter + " = " + str(combination[index]) +"\n")
     
