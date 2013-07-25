@@ -6,6 +6,7 @@ Author: Paolo Zaffino (p dot zaffino at unicz dot it)
 """
 
 import os
+import shutil
 import subprocess
 
 parameters={}
@@ -22,8 +23,8 @@ parameters["registration_config"]=[]
 parameters["spacing"]=[]
 
 # [ATLASES-SELECTION]
-parameters["enable_atlas_selection"]=[]
-parameters["atlas_selection_criteria"]=[]
+parameters["enable_atlas_selection"]=["true"]
+parameters["atlas_selection_criteria"]=["random"]
 parameters["roi_mask"]=[]
 parameters["mi_percent_thershold"]=[]
 parameters["mi_histogram_bins"]=[]
@@ -31,26 +32,26 @@ parameters["lower_mi_value"]=[]
 parameters["upper_mi_value"]=[]
 
 # [TRAINING]
-parameters["atlas_dir"]=[]
-parameters["training_dir"]=[]
-parameters["rho_values"]=[]
-parameters["sigma_values"]=[]
-parameters["minimum_similarity"]=[]
-parameters["threshold_values"]=[]
-parameters["write_thresholded_files"]=[]
-parameters["write_weight_files"]=[]
+parameters["atlas_dir"]=["atlas-mgh"]
+parameters["training_dir"]=["training-mgh"]
+parameters["rho_values"]=[0.5, 0.6]
+parameters["sigma_values"]=[1.5, 2.0]
+parameters["minimum_similarity"]=[0.25]
+parameters["threshold_values"]=[0.2,0.3,0.4,0.5]
+parameters["write_thresholded_files"]=[1]
+parameters["write_weight_files"]=[1]
 parameters["write_distance_map"]=[]
 parameters["compute_distance_map"]=[]
 
 # [REGISTRATION]
-parameters["registration_config"]=[]
+parameters["registration_config"]=["mgh-parms.txt"]
 
 # [LABELING]
 parameters["input"]=[]
 parameters["output"]=[]
 
 # [STRUCTURES]
-parameters["structures"]=[]
+parameters["structures"]=["left_parotid", "left_parotid_corr"]
 ####################################
 ###  Parameters setting - END -  ###
 ####################################
@@ -61,7 +62,7 @@ parameters["structures"]=[]
 
 # SET FULL PATHS
 plastimatch_path="" # if empty will be used the default installed plastimatch
-config_files_folder="config_files"
+config_files_folder="/home/USER/mabs/config_files"
 
 ####################################
 ###    Paths setting  - END -    ###
@@ -72,10 +73,10 @@ config_files_folder="config_files"
 print("START! \n")
 
 # Assign parameters to them section
-sections = ("atlas-selection", "prealignment", "training", "registration", "labeling", "structures")
+sections = ("prealignment", "atlas-selection", "training", "registration", "labeling", "structures")
 
 prealignment_parms = ("reference", "registration_config", "spacing")
-atlases_selection_parms = ("enable_atlas_selection", "atlas_selection_criteria", "roi_mask",
+atlas_selection_parms = ("enable_atlas_selection", "atlas_selection_criteria", "roi_mask",
                            "mi_percent_thershold", "mi_histogram_bins", "lower_mi_value", "upper_mi_value")
 training_parms = ("atlas_dir", "training_dir", "rho_values", "sigma_values", "minimum_similarity", "threshold_values",
                   "write_thresholded_files", "write_weight_files", "write_distance_map", "compute_distance_map")
@@ -110,13 +111,16 @@ print("All the possible parameters combinations are " + str (len(combinations)) 
 # Write parms files
 print("Writing configuration files \n")
 
-os.makedirs(config_files_folder)
+if os.path.exists(config_files_folder):
+   shutil.rmtree(config_files_folder)
+
+os.mkdir(config_files_folder)
 
 for i, combination in enumerate(combinations):
     fid = open(config_files_folder + os.sep + "mabs_test_" + str(i+1) + ".cfg", "w")
 
     for section in sections[:-1]: # No section "structures"
-        fid.write("[" + section.upper()  + "] \n"
+        fid.write("[" + section.upper()  + "] \n")
         
         for parameter in parameters:
             if parameter in vars()[section.replace("-", "_") + "_parms"]:
@@ -126,7 +130,8 @@ for i, combination in enumerate(combinations):
                 elif parameters[parameter] and parameter in non_fixed_parms:
                     index = non_fixed_parms.index(parameter)
                     fid.write(parameter + " = " + str(combination[index]) +"\n")
-        
+        fid.write("\n")
+    
     fid.write("[STRUCTURES] \n")
     for structure in parameters["structures"]:
         fid.write(structure + "\n")
